@@ -77,42 +77,51 @@ public class PlayerBehaviour : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        cameraPos = other.transform.position;
-
-        //TODO, gradually reduce velocity, rather than instantly stop
-        rb.velocity = new Vector3(0, 0, 0);
-
-        //TODO Check transform up against Vector up, base the whether orbit is clockwise or vice versa on this
-
-        float angleBetweenPlayerAndWorld = Vector3.Angle(transform.up, other.transform.up);
-        Vector3 crossProduct = Vector3.Cross(transform.up, other.transform.up);
-
-        if((crossProduct.z < 0 && transform.position.y < other.transform.position.y -1f) || (crossProduct.z < 0 && transform.position.y > other.transform.position.y - 1f && transform.position.x < other.transform.position.x))
+        if(other.gameObject.tag == "Coin")
         {
-            angleBetweenPlayerAndWorld = -angleBetweenPlayerAndWorld;
-        }        
-
-        if (angleBetweenPlayerAndWorld < 0) //&& transform.position.x > other.transform.position.x && transform.position.y > other.transform.position.y - 2f)
-        {
-            rotationDirection = -1;
-            print("Left");
+            Destroy(other.gameObject);
         }
-        else
-            rotationDirection = 1;
-        print("Right");
+
+        if (other.gameObject.tag == "Rotator")
+        {
+            //The position of the planet
+            cameraPos = other.transform.position;
+
+            //TODO, gradually reduce velocity, rather than instantly stop
+            rb.velocity = new Vector3(0, 0, 0);
+
+            //TODO Check transform up against Vector up, base the whether orbit is clockwise or vice versa on this
+
+            float angleBetweenPlayerAndWorld = Vector3.Angle(transform.up, other.transform.up);
+            Vector3 crossProduct = Vector3.Cross(transform.up, other.transform.up);
+
+            if ((crossProduct.z < 0 && transform.position.y < other.transform.position.y - 1f) || (crossProduct.z < 0 && transform.position.y > other.transform.position.y - 1f && transform.position.x < other.transform.position.x))
+            {
+                angleBetweenPlayerAndWorld = -angleBetweenPlayerAndWorld;
+            }
+
+            if (angleBetweenPlayerAndWorld < 0) //&& transform.position.x > other.transform.position.x && transform.position.y > other.transform.position.y - 2f)
+            {
+                rotationDirection = -1;
+                print("Left");
+            }
+            else
+                rotationDirection = 1;
+            print("Right");
+        }
 
     }
 
     private void OnTriggerStay(Collider collision)
     {
-        if (collision.gameObject)
+        if (collision.gameObject.tag == "Rotator")
         {
             transform.parent = collision.gameObject.transform;
 
             if(Physics.Raycast(transform.position, transform.right*-1, out rayHit, 500f) || Physics.Raycast(transform.position, transform.right, out rayHit, 500f))
             {
                
-                if (rayHit.transform.tag == "Planet")
+                if (rayHit.transform.tag == "Planet" || rayHit.transform.tag == "Bonus Planet")
                 {
 
                 }              

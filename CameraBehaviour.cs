@@ -31,8 +31,10 @@ public class CameraBehaviour : MonoBehaviour {
         {
             if (PlayerBehaviour.cameraPos.y > transform.position.y)
             {
-                transform.position = Vector3.MoveTowards(transform.position, PlayerBehaviour.cameraPos + transform.position, cameraSpeed * Time.smoothDeltaTime);
+                //transform.position = Vector3.MoveTowards(transform.position, PlayerBehaviour.cameraPos + transform.position, cameraSpeed * Time.smoothDeltaTime);
             }
+
+            transform.position = new Vector3(transform.position.x, transform.position.y + Time.deltaTime * cameraSpeed, transform.position.z);
         }
     }
 

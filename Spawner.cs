@@ -8,11 +8,11 @@ public class Spawner : MonoBehaviour {
     public List<GameObject> planets = new List<GameObject>();
     public List<GameObject> planetPoints;
     public GameObject planet, coin;
-    public int planetDistance, distanceBelowCamForMovePos = 25, widthDisBetweenPlanets = 20, maxCoins = 4;
+    public int numberOfPlanets = 4, planetDistance, distanceBelowCamForMovePos = 25, widthDisBetweenPlanets = 20, maxCoins = 4;
     public MeshFilter[] meshes;
     public Material mat;
     private Vector3 planetPosition;
-    private int numberOfPlanets = 4, numberOfCoins;
+    private int numberOfCoins;
     private bool lastPlanetInListPassed = false;
 
 	// Use this for initialization
@@ -36,13 +36,13 @@ public class Spawner : MonoBehaviour {
             BonusPlanet(newPlanet);
         }
 
-        planetPoints = new List<GameObject>(GameObject.FindGameObjectsWithTag("Planet").OrderBy((c) => c.transform.position.y));
+        //planetPoints = new List<GameObject>(GameObject.FindGameObjectsWithTag("Planet").OrderBy((c) => c.transform.position.y));
 
-        for (int numberOfCoins = 0; numberOfCoins < maxCoins; numberOfCoins++)
-        {
-            Instantiate(coin, planetPoints[numberOfCoins].transform.position * 0.5f + planetPoints[numberOfCoins + 1].transform.position * 0.5f, transform.rotation);
+        //for (int numberOfCoins = 0; numberOfCoins < maxCoins; numberOfCoins++)
+        //{
+        //    Instantiate(coin, planetPoints[numberOfCoins].transform.position * 0.5f + planetPoints[numberOfCoins + 1].transform.position * 0.5f, transform.rotation);
 
-        }
+        //}
     }
 
     private void BonusPlanet(GameObject newPlanet)
@@ -57,9 +57,13 @@ public class Spawner : MonoBehaviour {
                 inversePlanetPos = -inversePlanetPos;
             }
 
-            Vector3 planetPosX = new Vector3(Random.Range(newPlanet.transform.position.x + 15f, newPlanet.transform.position.x + 30f), newPlanet.transform.position.y);
-            GameObject bonusPlanet = Instantiate(planet, planetPosX * inversePlanetPos, transform.rotation);
+            Vector3 planetPosX = new Vector3(Random.Range(newPlanet.transform.position.x + 15f * inversePlanetPos, newPlanet.transform.position.x + 30f * inversePlanetPos), newPlanet.transform.position.y);
+            GameObject bonusPlanet = Instantiate(planet, planetPosX, transform.rotation);
+            //TODO Find Reference to children and change tag to Bonus Planet
+            GameObject childPlanet = bonusPlanet.transform.FindChild("Planet Rotate").gameObject;
+            GameObject childPlanetCore = childPlanet.transform.FindChild("PlanetCore").gameObject;
             bonusPlanet.name = "Bonus Planet";
+            childPlanetCore.tag = "Bonus Planet";
         }
     }
 
@@ -81,24 +85,6 @@ public class Spawner : MonoBehaviour {
 
         }
 
-        //if (Camera.main.transform.position.y > planetPoints.Last<GameObject>().transform.position.y && !lastPlanetInListPassed)
-        //{
-        //    planetPoints = new List<GameObject>(GameObject.FindGameObjectsWithTag("Planet").OrderBy((c) => c.transform.position.y));
-
-        //    from = 0;
-        //    numberOfCoins = 0;
-
-        //    for (int numberOfCoins = 0; numberOfCoins < maxCoins; numberOfCoins++)
-        //    {
-        //        Instantiate(coin, planetPoints[from].transform.position * 0.5f + planetPoints[from + 1].transform.position * 0.5f, transform.rotation);
-
-        //        from++;
-
-        //    }
-        //    lastPlanetInListPassed = true;
-        //}
-        //else
-        //    lastPlanetInListPassed = false;
 
     }
 
