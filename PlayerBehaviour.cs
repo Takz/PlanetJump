@@ -10,9 +10,11 @@ public class PlayerBehaviour : MonoBehaviour {
     public float rotationSpeed = 10f;
     public LayerMask layerMask;
     public static Vector3 cameraPos;
-    public bool boost = false;
-    private float inputTime;
-    private int invertDirection = 1;
+    public bool boost = false, deccelerationComplete = false;
+    private float inputTime, deccelerationRate = 2f, speedToDeccelerateTo = 0.5f;
+    private int invertDirection = 1, lineLength = 20;
+    private LineRenderer line;
+    private Vector3 enterOrbitVelocity;
 
     Ray rayUp;
     RaycastHit rayHit;
@@ -21,6 +23,7 @@ public class PlayerBehaviour : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         rb = GetComponent<Rigidbody>();
+        line = GetComponent<LineRenderer>();
 	}
 	
 	// Update is called once per frame
@@ -29,6 +32,16 @@ public class PlayerBehaviour : MonoBehaviour {
         RayCasting();
 
         UserInput();
+
+        LineRender();
+
+        print(rotationDirection);
+    }
+
+    private void LineRender()
+    {
+        line.SetPosition(0, transform.position);
+        line.SetPosition(1, transform.position + transform.up * lineLength);
 
     }
 
@@ -87,27 +100,39 @@ public class PlayerBehaviour : MonoBehaviour {
             //The position of the planet
             cameraPos = other.transform.position;
 
-            //TODO, gradually reduce velocity, rather than instantly stop
-            rb.velocity = new Vector3(0, 0, 0);
+            //Calculate angle between up of player and Vector up of world
+            float angleBetweenPlayerAndWorld = Vector3.Angle(transform.up, Vector3.up);
+            //Cross product between them
+            Vector3 crossProduct = Vector3.Cross(transform.up, Vector3.up);
 
-            //TODO Check transform up against Vector up, base the whether orbit is clockwise or vice versa on this
-
-            float angleBetweenPlayerAndWorld = Vector3.Angle(transform.up, other.transform.up);
-            Vector3 crossProduct = Vector3.Cross(transform.up, other.transform.up);
-
-            if ((crossProduct.z < 0 && transform.position.y < other.transform.position.y - 1f) || (crossProduct.z < 0 && transform.position.y > other.transform.position.y - 1f && transform.position.x < other.transform.position.x))
+            //If the cross product on z is less than 0, the player is at a negative angle, below 0
+            if (crossProduct.z < 0) 
             {
                 angleBetweenPlayerAndWorld = -angleBetweenPlayerAndWorld;
             }
-
-            if (angleBetweenPlayerAndWorld < 0) //&& transform.position.x > other.transform.position.x && transform.position.y > other.transform.position.y - 2f)
+            
+            if (rb.velocity.x < 0 && angleBetweenPlayerAndWorld < 0)
             {
                 rotationDirection = -1;
                 print("Left");
             }
             else
+            {
                 rotationDirection = 1;
-            print("Right");
+                print("Right");
+            }
+
+            // Once in planet near Orbit, reduce velocity to 0 and check decceleration complete
+            rb.velocity = new Vector3(0, 0, 0);
+            deccelerationComplete = true;
+
+            line.enabled = true;
+        }
+
+        if (other.gameObject.tag == "Slow")
+        {
+            // Add the velocity to a variable
+            enterOrbitVelocity = rb.velocity;
         }
 
     }
@@ -116,18 +141,28 @@ public class PlayerBehaviour : MonoBehaviour {
     {
         if (collision.gameObject.tag == "Rotator")
         {
-            transform.parent = collision.gameObject.transform;
+            transform.parent = collision.gameObject.transform;            
 
-            if(Physics.Raycast(transform.position, transform.right*-1, out rayHit, 500f) || Physics.Raycast(transform.position, transform.right, out rayHit, 500f))
+            if (Physics.Raycast(transform.position, transform.right*-1, out rayHit, 50f) || Physics.Raycast(transform.position, transform.right, out rayHit, 50f))
             {
                
                 if (rayHit.transform.tag == "Planet" || rayHit.transform.tag == "Bonus Planet")
                 {
-
+                    
                 }              
             }
-            else
+            else 
                 transform.Rotate(0, 0, Time.smoothDeltaTime * rotationSpeed * rotationDirection *-1);
+        }
+
+        if(collision.gameObject.tag == "Slow" && !deccelerationComplete)
+        {
+            Vector3 currentVelocity = rb.velocity;
+
+            //The velocity is reduce towards 0 in outer orbit
+            rb.velocity = new Vector3(Mathf.Lerp(currentVelocity.x,  currentVelocity.x - currentVelocity.x, Time.deltaTime * deccelerationRate), Mathf.Lerp(currentVelocity.y, enterOrbitVelocity.y - currentVelocity.y, Time.deltaTime * deccelerationRate),
+                Mathf.Lerp(currentVelocity.z, currentVelocity.z - enterOrbitVelocity.z, Time.deltaTime * deccelerationRate));
+
         }
         
     }
@@ -135,5 +170,12 @@ public class PlayerBehaviour : MonoBehaviour {
     private void OnTriggerExit(Collider other)
     {
         transform.parent = null;
+
+        if(other.gameObject.tag == "Slow")
+        {
+            deccelerationComplete = false;
+        }
+
+        line.enabled = false;
     }
 }

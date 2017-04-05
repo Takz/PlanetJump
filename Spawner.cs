@@ -7,11 +7,12 @@ public class Spawner : MonoBehaviour {
 
     public List<GameObject> planets = new List<GameObject>();
     public List<GameObject> planetPoints;
-    public GameObject planet, coin;
+    public GameObject planet, coin, pirate;
     public int numberOfPlanets = 4, planetDistance, distanceBelowCamForMovePos = 25, widthDisBetweenPlanets = 20, maxCoins = 4;
     public MeshFilter[] meshes;
     public Material mat;
     private Vector3 planetPosition;
+    private TrailRenderer tempTrail;
     private int numberOfCoins;
     private bool lastPlanetInListPassed = false;
 
@@ -36,13 +37,6 @@ public class Spawner : MonoBehaviour {
             BonusPlanet(newPlanet);
         }
 
-        //planetPoints = new List<GameObject>(GameObject.FindGameObjectsWithTag("Planet").OrderBy((c) => c.transform.position.y));
-
-        //for (int numberOfCoins = 0; numberOfCoins < maxCoins; numberOfCoins++)
-        //{
-        //    Instantiate(coin, planetPoints[numberOfCoins].transform.position * 0.5f + planetPoints[numberOfCoins + 1].transform.position * 0.5f, transform.rotation);
-
-        //}
     }
 
     private void BonusPlanet(GameObject newPlanet)
@@ -59,7 +53,7 @@ public class Spawner : MonoBehaviour {
 
             Vector3 planetPosX = new Vector3(Random.Range(newPlanet.transform.position.x + 15f * inversePlanetPos, newPlanet.transform.position.x + 30f * inversePlanetPos), newPlanet.transform.position.y);
             GameObject bonusPlanet = Instantiate(planet, planetPosX, transform.rotation);
-            //TODO Find Reference to children and change tag to Bonus Planet
+
             GameObject childPlanet = bonusPlanet.transform.FindChild("Planet Rotate").gameObject;
             GameObject childPlanetCore = childPlanet.transform.FindChild("PlanetCore").gameObject;
             bonusPlanet.name = "Bonus Planet";
@@ -72,20 +66,34 @@ public class Spawner : MonoBehaviour {
 
 		foreach(GameObject planet in planets.ToList<GameObject>())
         {
-            if(planet.transform.position.y < Camera.main.transform.position.y - distanceBelowCamForMovePos)
+            if (planet.transform.position.y < Camera.main.transform.position.y - distanceBelowCamForMovePos)
             {
+                tempTrail = planet.GetComponent<FindTrailRender>().trail;
+                tempTrail.enabled = false;
+                Invoke("EnableTrail", 1f);
                 planet.transform.position = planetPosition = new Vector3(Random.Range(-widthDisBetweenPlanets, widthDisBetweenPlanets), planets.Last<GameObject>().transform.position.y + planetDistance, 0);
                 RandomPlanetScale(1, 1, planet);
                 RandomMesh(planet);
                 planets.Add(planet);
 
                 BonusPlanet(planet);
+
+                float randomRoll = Random.Range(0, 100);
+
+                if (randomRoll > 50 && !PirateBehaviour.pirateOnScreen)
+                {
+                    pirate.transform.position = new Vector3(planets.Last<GameObject>().transform.position.x + Random.Range(-10, 10), planets.Last<GameObject>().transform.position.y + 10f);
+                }
+
             }
-
-
         }
 
 
+    }
+
+    private void EnableTrail()
+    {
+        tempTrail.enabled = true;
     }
 
     private void RandomMesh(GameObject planet)

@@ -34,7 +34,7 @@ public class CameraBehaviour : MonoBehaviour {
                 //transform.position = Vector3.MoveTowards(transform.position, PlayerBehaviour.cameraPos + transform.position, cameraSpeed * Time.smoothDeltaTime);
             }
 
-            transform.position = new Vector3(transform.position.x, transform.position.y + Time.deltaTime * cameraSpeed, transform.position.z);
+            transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, PlayerBehaviour.cameraPos.x, Time.deltaTime * 10f), transform.position.y + Time.deltaTime * cameraSpeed, transform.position.z);
         }
     }
 
