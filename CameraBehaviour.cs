@@ -5,36 +5,53 @@ using System.Linq;
 
 public class CameraBehaviour : MonoBehaviour {
 
-    public Transform target;
-    public float cameraSpeed;
+    Transform target;
+    public float cameraSpeed, camToPlayerDistance, camSmooth;
 
+    GameObject player;
     Spawner spawn;
 
     // Use this for initialization
     IEnumerator Start () {
+        player = GameObject.FindGameObjectWithTag("Player");
         spawn = FindObjectOfType<Spawner>().GetComponent<Spawner>();
         yield return new WaitForEndOfFrame();
     }
-	
-	// Update is called once per frame
-	void Update ()
+    
+    // Update is called once per frame
+    void FixedUpdate ()
     {
+        camToPlayerDistance = player.transform.position.y - transform.position.y;
+
+        if (player.gameObject.transform.parent)
+        {
+            if (player.gameObject.transform.parent.name == "Planet Rotate")
+            {
+                target = player.gameObject.transform.parent;
+            }
+ 
+        }
+        else
+            target = player.transform;
+
         CameraBehaviourWhenGameIsRunning();
 
         PlayerOnScreen();
-
     }
 
     private void CameraBehaviourWhenGameIsRunning()
     {
         if (GameState.IsRunning)
         {
-            if (PlayerBehaviour.cameraPos.y > transform.position.y)
+            //TODO look at ways to make the camera y axis better once the player has approached the top of the screen
+
+            if (camToPlayerDistance > 20f) // && player.transform.parent == null)
             {
-                //transform.position = Vector3.MoveTowards(transform.position, PlayerBehaviour.cameraPos + transform.position, cameraSpeed * Time.smoothDeltaTime);
+                transform.position = new Vector3(Mathf.SmoothStep(transform.position.x, target.transform.position.x, Time.smoothDeltaTime * camSmooth), Mathf.SmoothStep(transform.position.y, target.transform.position.y, Time.smoothDeltaTime * camSmooth * 0.5f), transform.position.z);
             }
 
-            transform.position = new Vector3(Mathf.MoveTowards(transform.position.x, PlayerBehaviour.cameraPos.x, Time.deltaTime * 10f), transform.position.y + Time.deltaTime * cameraSpeed, transform.position.z);
+            transform.position = new Vector3(Mathf.SmoothStep(transform.position.x, target.transform.position.x, Time.smoothDeltaTime * camSmooth), transform.position.y + Time.smoothDeltaTime * cameraSpeed, transform.position.z);
+
         }
     }
 
@@ -47,7 +64,20 @@ public class CameraBehaviour : MonoBehaviour {
         if (!onScreen)
         {
             GameState.ChangeState(GameState.States.GameOver);
-            print("GameOver");
+
+        }
+    }
+
+    public float AddToCameraSpeed
+    {
+        get
+        {
+            return cameraSpeed;
+        }
+
+        set
+        {
+            cameraSpeed += value;
         }
     }
 }
