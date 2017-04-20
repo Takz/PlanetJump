@@ -10,6 +10,7 @@ public class GameState:MonoBehaviour
     {
         Start, GameOver, Pause, Running
     }
+
     public static States state = States.Start;
     void Awake()
     {
