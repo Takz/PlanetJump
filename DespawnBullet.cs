@@ -19,4 +19,12 @@ public class DespawnBullet : MonoBehaviour {
         Destroy(gameObject);
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "Shell")
+        {
+            Destroy(gameObject);
+        }
+    }
+
 }
