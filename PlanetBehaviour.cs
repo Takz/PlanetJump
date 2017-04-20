@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlanetBehaviour : MonoBehaviour {
 
     public GameObject coin, coinSet;
-
+    public static bool playerAttached;
     [SerializeField]
     private float rotationSpeed = 1f;
     GameObject rotator;
@@ -15,7 +15,7 @@ public class PlanetBehaviour : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        coin = GameObject.FindGameObjectWithTag("Coin");
+        coin = GameObject.FindGameObjectWithTag("CoinH");
         coinSet = GameObject.FindGameObjectWithTag("CoinSet");
         rotator = GameObject.FindObjectOfType<UIRotator>().gameObject;
     }
@@ -31,33 +31,43 @@ public class PlanetBehaviour : MonoBehaviour {
 
     private void RayCastAndInstantiateCoins()
     {
-        if(transform.position.y > posWhereCoinSpawned.y)
+        if(transform.position.y > posWhereCoinSpawned.y + 10)
         {
             coinSpawned = false;
+            coinSetSpawned = false;
         }
 
         Ray ray = new Ray(transform.position, transform.up);
 
-        Quaternion q = Quaternion.AngleAxis(Time.time * 500f, Vector3.forward);
+        Quaternion q = Quaternion.AngleAxis(Time.time * 150f, Vector3.forward);
         Vector3 direction = Vector3.up;
         direction = q * direction;
         RaycastHit hit;
 
         Debug.DrawRay(transform.position, direction, Color.blue, 200f);
 
-        if (Physics.Raycast(transform.position, direction, out hit, 30f) && !coinSpawned)
+        //TODO depending on planet spawning distance due to stage; change the length of the ray for spawning coins
+
+        if (Physics.Raycast(transform.position, direction, out hit, 29f))
         {
-            if ((hit.transform.tag == "Planet" || hit.transform.tag == "Bonus Planet") && hit.transform.position.y > transform.position.y)
+            if (hit.collider.transform.tag == "Planet" && hit.transform.position.y > transform.position.y + 10f && !coinSpawned)
             {
                 hit = InstantiateCoins(hit, q);
                 coinSpawned = true;
             }
+
+            if (hit.collider.transform.tag == "Bonus Planet" && hit.transform.position.y > transform.position.y + 10f && !coinSetSpawned)
+            {
+                hit = InstantiateCoins(hit, q);
+                coinSetSpawned = true;
+            }
+
         }
     }
 
     private RaycastHit InstantiateCoins(RaycastHit hit, Quaternion direction)
     {
-        if(hit.transform.tag == "Bonus Planet")
+        if(hit.collider.transform.tag == "Bonus Planet")
         {
             coin = coinSet;
         }
@@ -71,14 +81,13 @@ public class PlanetBehaviour : MonoBehaviour {
     {
         if (transform.FindChild("Player"))
         {
-            //rotator.transform.parent = transform.parent;
-            //rotator.transform.position = transform.parent.position;
+            playerAttached = true;
             transform.Rotate(0, 0, Time.deltaTime * rotationSpeed * PlayerBehaviour.boostSpeed * PlayerBehaviour.rotationDirection);
 
         }
         else
         {
-
+            playerAttached = false;
         }
     }
 }

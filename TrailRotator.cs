@@ -10,7 +10,7 @@ public class TrailRotator : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-        transform.Rotate(0, 0, Time.deltaTime * 900);
+	void FixedUpdate () {
+        transform.Rotate(0, 0, Time.smoothDeltaTime * 900);
 	}
 }
